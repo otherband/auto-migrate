@@ -1,0 +1,12 @@
+{
+  "migrationVersion": "1.0",
+  "migrationSteps": [
+    {
+      "migrationType": "METHOD_USE_RENAME",
+      "migrationArgs": {
+        "fromName": "of",
+        "toName": "ofElements"
+      }
+    }
+  ]
+}
