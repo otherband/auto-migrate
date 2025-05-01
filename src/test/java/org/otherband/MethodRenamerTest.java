@@ -28,6 +28,13 @@ class MethodRenamerTest {
                 rewriter.renameMethod(starting, "of", "ofElements"));
     }
 
+    @Test
+    void noChangeToFileWithNoMethodCalls() throws IOException {
+        String starting = readResource("pre/no_functions.java-sample");
+        assertEqualsIgnoringWhitespace(starting,
+                rewriter.renameMethod(starting, "of", "ofElements"));
+    }
+
     private void assertEqualsIgnoringWhitespace(String expected, String result) {
         assertEquals(removeWhitespace(expected), removeWhitespace(result));
     }
