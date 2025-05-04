@@ -25,14 +25,28 @@ class MethodRenamerTest {
         String starting = readResource("pre/uses_functions.java-sample");
         String expected = readResource("post/uses_functions.java-sample");
         assertEqualsIgnoringWhitespace(expected,
-                rewriter.renameMethod(starting, "of", "ofElements"));
+                rewriter.renameMethod(starting, "java.util.List", "of", "ofElements"));
+    }
+
+    @Test
+    void renamesOnlyDesiredMethod() throws IOException {
+        String starting = readResource("pre/uses_functions_with_same_name.java-sample");
+        String expected = readResource("post/uses_functions_with_same_name.java-sample");
+        assertEqualsIgnoringWhitespace(expected,
+                rewriter.renameMethod(starting,
+                        "java.util.List",
+                        "of",
+                        "ofElements"));
     }
 
     @Test
     void noChangeToFileWithNoMethodCalls() throws IOException {
         String starting = readResource("pre/no_functions.java-sample");
         assertEqualsIgnoringWhitespace(starting,
-                rewriter.renameMethod(starting, "of", "ofElements"));
+                rewriter.renameMethod(starting,
+                        "java.util.List",
+                        "of",
+                        "ofElements"));
     }
 
     private void assertEqualsIgnoringWhitespace(String expected, String result) {
