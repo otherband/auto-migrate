@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.otherband.Commons.readResource;
 
 class MigrationDeserializationTest {
@@ -32,5 +33,17 @@ class MigrationDeserializationTest {
         String jsonString = MigrationSerializer.serialize(migrationDescription);
         assertEquals(expected, jsonString);
     }
+
+    @Test
+    void doesNotContainTypeAttribute() throws IOException {
+        String invalidMigration = readResource("migrations/invalid-migration.json");
+        SerializationException exception = assertThrows(SerializationException.class, () -> {
+            MigrationDeserialization.fromJson(invalidMigration);
+        });
+        assertEquals("""
+                        Could not deserialize migration: object [{"fromName":"of","toName":"ofElements"}] does not contain a 'type' attribute""",
+                exception.getMessage());
+    }
+
 
 }

@@ -1,0 +1,9 @@
+{
+  "migrationVersion": "1.0",
+  "migrationSteps": [
+    {
+      "fromName": "of",
+      "toName": "ofElements"
+    }
+  ]
+}
