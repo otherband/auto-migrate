@@ -4,18 +4,18 @@ import org.junit.jupiter.api.Test;
 import org.otherband.MigrationType;
 
 import java.io.IOException;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.otherband.Commons.readResource;
 
 class MigrationDeserializationTest {
 
-    private final MigrationDeserialization migrationDeserialization = new MigrationDeserialization();
 
     @Test
     void deserialize() throws IOException {
         String migrationString = readResource("migrations/sample-migration.json");
-        MigrationDescription migrationSteps = migrationDeserialization.fromJson(migrationString);
+        MigrationDescription migrationSteps = MigrationDeserialization.fromJson(migrationString);
         assertEquals(1, migrationSteps.migrationSteps().size());
         MigrationStep.MethodUseRename firstStep = (MigrationStep.MethodUseRename) migrationSteps.migrationSteps().get(0);
         assertEquals("of", firstStep.fromName());
@@ -25,7 +25,12 @@ class MigrationDeserializationTest {
 
     @Test
     void serialize() throws IOException {
-        // TODO
+        String expected = readResource("migrations/serilization-result.json");
+        List<MigrationStep> migrationSteps = List.of(new MigrationStep.MethodUseRename("of", "ofElements"),
+                new MigrationStep.MethodUseRename("ofStuff", "ofThings"));
+        MigrationDescription migrationDescription = new MigrationDescription("1.0", migrationSteps);
+        String jsonString = MigrationSerializer.serialize(migrationDescription);
+        assertEquals(expected, jsonString);
     }
 
 }
