@@ -1,0 +1,10 @@
+{
+  "migrationVersion": "1.0",
+  "migrationSteps": [
+    {
+      "type": "DOES_NOT_EXIST",
+      "fromName": "of",
+      "toName": "ofElements"
+    }
+  ]
+}

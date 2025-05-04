@@ -3,8 +3,13 @@
   "migrationSteps": [
     {
       "type": "METHOD_USE_RENAME",
-        "fromName": "of",
-        "toName": "ofElements"
+      "fromName": "of",
+      "toName": "ofElements"
+    },
+    {
+      "type": "method_use_rename",
+      "fromName": "of",
+      "toName": "ofElements"
     }
   ]
 }

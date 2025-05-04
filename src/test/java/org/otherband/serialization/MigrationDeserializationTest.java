@@ -17,7 +17,7 @@ class MigrationDeserializationTest {
     void deserialize() throws IOException {
         String migrationString = readResource("migrations/sample-migration.json");
         MigrationDescription migrationSteps = MigrationDeserialization.fromJson(migrationString);
-        assertEquals(1, migrationSteps.migrationSteps().size());
+        assertEquals(2, migrationSteps.migrationSteps().size());
         MigrationStep.MethodUseRename firstStep = (MigrationStep.MethodUseRename) migrationSteps.migrationSteps().get(0);
         assertEquals("of", firstStep.fromName());
         assertEquals("ofElements", firstStep.toName());
@@ -36,12 +36,22 @@ class MigrationDeserializationTest {
 
     @Test
     void doesNotContainTypeAttribute() throws IOException {
-        String invalidMigration = readResource("migrations/invalid-migration.json");
+        String invalidMigration = readResource("migrations/migration-with-no-type.json");
         SerializationException exception = assertThrows(SerializationException.class, () -> {
             MigrationDeserialization.fromJson(invalidMigration);
         });
         assertEquals("""
                         Could not deserialize migration: object [{"fromName":"of","toName":"ofElements"}] does not contain a 'type' attribute""",
+                exception.getMessage());
+    }
+
+    @Test
+    void invalidTypeAttribute() throws IOException {
+        String invalidMigration = readResource("migrations/migration-with-invalid-type.json");
+        SerializationException exception = assertThrows(SerializationException.class, () -> {
+            MigrationDeserialization.fromJson(invalidMigration);
+        });
+        assertEquals("Unrecognized migration step type 'DOES_NOT_EXIST'",
                 exception.getMessage());
     }
 

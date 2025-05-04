@@ -5,10 +5,14 @@ import org.otherband.MigrationType;
 import org.otherband.serialization.MigrationStep.MethodUseRename;
 
 import java.lang.reflect.Type;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class MigrationDeserialization {
     private static final Gson GSON = buildCustomGson();
+    private static final Set<String> MIGRATION_TYPES = Arrays.stream(MigrationType.values())
+            .map(migrationType -> migrationType.name().toLowerCase(Locale.ROOT))
+            .collect(Collectors.toSet());
 
     public static MigrationDescription fromJson(String jsonString) {
         return GSON.fromJson(jsonString, MigrationDescription.class);
@@ -33,10 +37,24 @@ public class MigrationDeserialization {
 
         private static MigrationType getType(JsonElement jsonElement) {
             JsonElement typeField = jsonElement.getAsJsonObject().get("type");
+            String typeValue = getValidatedType(jsonElement, typeField);
+            return MigrationType.valueOf(typeValue.toUpperCase(Locale.ROOT));
+        }
+
+        private static String getValidatedType(JsonElement jsonElement, JsonElement typeField) {
             if (Objects.isNull(typeField)) {
                 throw new SerializationException(MUST_CONTAIN_TYPE.formatted(jsonElement));
             }
-            return MigrationType.valueOf(typeField.getAsString());
+            String typeValue = typeField.getAsString();
+            if (!isValidEnum(typeValue)) {
+                throw new SerializationException("Unrecognized migration step type '%s'".formatted(typeValue));
+            }
+            return typeValue;
+        }
+
+        private static boolean isValidEnum(String typeValue) {
+            String lowerCaseTypeValue = Optional.of(typeValue).map(s -> s.toLowerCase(Locale.ROOT)).orElse("");
+            return MIGRATION_TYPES.contains(lowerCaseTypeValue);
         }
     }
 
