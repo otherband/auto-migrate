@@ -1,6 +1,7 @@
 package org.otherband.serialization;
 
 import org.junit.jupiter.api.Test;
+import org.otherband.MigrationType;
 
 import java.io.IOException;
 
@@ -19,6 +20,7 @@ class MigrationDeserializationTest {
         MigrationStep.MethodUseRename firstStep = (MigrationStep.MethodUseRename) migrationSteps.migrationSteps().get(0);
         assertEquals("of", firstStep.fromName());
         assertEquals("ofElements", firstStep.toName());
+        assertEquals(MigrationType.METHOD_USE_RENAME, firstStep.type());
     }
 
     @Test
