@@ -4,12 +4,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.otherband.Commons.readResource;
 
 class MethodRenamerTest {
 
@@ -55,14 +52,6 @@ class MethodRenamerTest {
 
     private String removeWhitespace(String string) {
         return string.replaceAll("\\s+", "");
-    }
-
-    private static String readResource(String resource) throws IOException {
-        return Files.readString(Path.of(getResource(resource).getPath()));
-    }
-
-    private static URL getResource(String resource) {
-        return Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(resource));
     }
 
 }

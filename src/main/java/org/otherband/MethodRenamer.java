@@ -5,10 +5,7 @@ import com.github.javaparser.ParseResult;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-
-import java.util.function.Function;
 
 public class MethodRenamer {
     public String renameMethod(String oldFile,
@@ -39,12 +36,19 @@ public class MethodRenamer {
 
         public void visit(MethodCallExpr methodCall, Void arg) {
             super.visit(methodCall, arg);
-            boolean matchingScope = methodCall.getScope()
-                    .map(this::doesScopeMatch)
-                    .orElse(false);
-            if (matchingScope && methodCall.getNameAsString().equals(oldName)) {
+            if (doesScopeMatch(methodCall) && doesNameMatch(methodCall)) {
                 methodCall.setName(newName);
             }
+        }
+
+        private boolean doesNameMatch(MethodCallExpr methodCall) {
+            return oldName.equals(methodCall.getNameAsString());
+        }
+
+        private boolean doesScopeMatch(MethodCallExpr methodCall) {
+            return methodCall.getScope()
+                    .map(this::doesScopeMatch)
+                    .orElse(false);
         }
 
         private boolean doesScopeMatch(Expression expression) {
@@ -52,7 +56,4 @@ public class MethodRenamer {
         }
     }
 
-    private static Function<Expression, SimpleName> getNameFunction() {
-        return expression -> expression.asNameExpr().getName();
-    }
 }
