@@ -26,6 +26,7 @@ public class MigrationDeserialization {
     private static class MigrationStepDeserializer implements JsonDeserializer<MigrationStep> {
 
         private static final String MUST_CONTAIN_TYPE = "Could not deserialize migration: object [%s] does not contain a 'type' attribute";
+        private static final String UNRECOGNIZED_TYPE = "Unrecognized migration step type '%s'";
 
         @Override
         public MigrationStep deserialize(JsonElement jsonElement,
@@ -49,7 +50,7 @@ public class MigrationDeserialization {
             }
             String typeValue = typeField.getAsString();
             if (!isValidEnum(typeValue)) {
-                throw new SerializationException("Unrecognized migration step type '%s'".formatted(typeValue));
+                throw new SerializationException(UNRECOGNIZED_TYPE.formatted(typeValue));
             }
             return typeValue;
         }

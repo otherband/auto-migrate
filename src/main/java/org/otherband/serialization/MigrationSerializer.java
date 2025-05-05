@@ -6,10 +6,14 @@ import java.lang.reflect.Type;
 
 public class MigrationSerializer {
 
-    private static final Gson GSON = new GsonBuilder().registerTypeAdapter(MigrationStep.class, new MigrationStepSerializer()).create();
+    private static final Gson GSON = buildCustomGson();
 
     public static String serialize(MigrationDescription migrationDescription) {
         return GSON.toJson(migrationDescription);
+    }
+
+    private static Gson buildCustomGson() {
+        return new GsonBuilder().registerTypeAdapter(MigrationStep.class, new MigrationStepSerializer()).create();
     }
 
     private static class MigrationStepSerializer implements JsonSerializer<MigrationStep> {
