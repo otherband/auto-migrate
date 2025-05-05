@@ -5,7 +5,9 @@ import com.github.javaparser.ParseResult;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
 
 public class MethodRenamer {
     public String renameMethod(String oldFile,
@@ -14,12 +16,16 @@ public class MethodRenamer {
                                String newMethodName) {
         ParseResult<CompilationUnit> parseResult = new JavaParser().parse(oldFile);
         return parseResult.getResult()
-                .map(compilationUnit -> {
-                    MethodUseRenamer methodUseRenamer = new MethodUseRenamer(scope, oldMethodName, newMethodName);
-                    compilationUnit.accept(methodUseRenamer, null);
-                    return compilationUnit.toString();
-                })
-                .orElse("");
+                .map(LexicalPreservingPrinter::setup)
+                .map(compilationUnit -> renameMethod(scope, oldMethodName, newMethodName, compilationUnit))
+                .map(LexicalPreservingPrinter::print)
+                .orElseThrow(() -> new IllegalArgumentException("Could not parse java file [%s]".formatted(oldFile)));
+    }
+
+    private static CompilationUnit renameMethod(String scope, String oldMethodName, String newMethodName, CompilationUnit compilationUnit) {
+        MethodUseRenamer methodUseRenamer = new MethodUseRenamer(scope, oldMethodName, newMethodName);
+        compilationUnit.accept(methodUseRenamer, null);
+        return compilationUnit;
     }
 
 
@@ -32,6 +38,11 @@ public class MethodRenamer {
             this.owningClass = owningClass;
             this.oldName = oldName;
             this.newName = newName;
+        }
+
+        @Override
+        public void visit(ClassOrInterfaceType n, Void arg) {
+            super.visit(n, arg);
         }
 
         public void visit(MethodCallExpr methodCall, Void arg) {
