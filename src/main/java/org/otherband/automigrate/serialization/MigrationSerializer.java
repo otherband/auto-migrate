@@ -1,4 +1,4 @@
-package org.otherband.serialization;
+package org.otherband.automigrate.serialization;
 
 import com.google.gson.*;
 

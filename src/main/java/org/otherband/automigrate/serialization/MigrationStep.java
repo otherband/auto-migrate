@@ -1,6 +1,6 @@
-package org.otherband.serialization;
+package org.otherband.automigrate.serialization;
 
-import org.otherband.MigrationType;
+import org.otherband.automigrate.MigrationType;
 
 public sealed interface MigrationStep {
     MigrationType type();

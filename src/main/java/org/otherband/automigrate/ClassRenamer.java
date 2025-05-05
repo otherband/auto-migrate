@@ -1,4 +1,4 @@
-package org.otherband;
+package org.otherband.automigrate;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseResult;
@@ -10,18 +10,17 @@ import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinte
 
 public class ClassRenamer {
     public String renameClass(String oldFile,
-                              String scope,
                               String oldName,
                               String newName) {
         ParseResult<CompilationUnit> parseResult = new JavaParser().parse(oldFile);
         return parseResult.getResult()
                 .map(LexicalPreservingPrinter::setup)
-                .map(compilationUnit -> renameClass(scope, oldName, newName, compilationUnit))
+                .map(compilationUnit -> renameClass(oldName, newName, compilationUnit))
                 .map(LexicalPreservingPrinter::print)
                 .orElseThrow(() -> new IllegalArgumentException("Could not parse java file [%s]".formatted(oldFile)));
     }
 
-    private static CompilationUnit renameClass(String scope, String oldName, String newName, CompilationUnit compilationUnit) {
+    private static CompilationUnit renameClass(String oldName, String newName, CompilationUnit compilationUnit) {
         TypeRenamer typeRenamer = new TypeRenamer(oldName, newName);
         compilationUnit.accept(typeRenamer, null);
         return compilationUnit;

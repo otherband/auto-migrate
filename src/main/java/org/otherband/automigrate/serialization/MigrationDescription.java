@@ -1,4 +1,4 @@
-package org.otherband.serialization;
+package org.otherband.automigrate.serialization;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package org.otherband;
+package org.otherband.automigrate;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.otherband.Commons.readResource;
+import static org.otherband.automigrate.Commons.readResource;
 
 class MethodRenamerTest {
 

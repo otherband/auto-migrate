@@ -1,14 +1,14 @@
-package org.otherband.serialization;
+package org.otherband.automigrate.serialization;
 
 import org.junit.jupiter.api.Test;
-import org.otherband.MigrationType;
+import org.otherband.automigrate.MigrationType;
 
 import java.io.IOException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.otherband.Commons.readResource;
+import static org.otherband.automigrate.Commons.readResource;
 
 class MigrationSerializationTest {
 

@@ -1,4 +1,4 @@
-package org.otherband;
+package org.otherband.automigrate;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseResult;

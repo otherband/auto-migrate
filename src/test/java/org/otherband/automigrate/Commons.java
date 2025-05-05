@@ -1,4 +1,4 @@
-package org.otherband;
+package org.otherband.automigrate;
 
 import java.io.IOException;
 import java.net.URL;

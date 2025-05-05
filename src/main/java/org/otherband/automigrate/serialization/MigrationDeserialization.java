@@ -1,9 +1,9 @@
-package org.otherband.serialization;
+package org.otherband.automigrate.serialization;
 
 import com.google.gson.*;
-import org.otherband.MigrationType;
-import org.otherband.serialization.MigrationStep.MethodUseRename;
-import org.otherband.serialization.MigrationStep.TypeRename;
+import org.otherband.automigrate.MigrationType;
+import org.otherband.automigrate.serialization.MigrationStep.MethodUseRename;
+import org.otherband.automigrate.serialization.MigrationStep.TypeRename;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -31,10 +31,10 @@ public class MigrationDeserialization {
         @Override
         public MigrationStep deserialize(JsonElement jsonElement,
                                          Type type,
-                                         JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+                                         JsonDeserializationContext context) throws JsonParseException {
             return switch (getType(jsonElement)) {
-                case RENAME_METHOD -> jsonDeserializationContext.deserialize(jsonElement, MethodUseRename.class);
-                case RENAME_TYPE -> jsonDeserializationContext.deserialize(jsonElement, TypeRename.class);
+                case RENAME_METHOD -> context.deserialize(jsonElement, MethodUseRename.class);
+                case RENAME_TYPE -> context.deserialize(jsonElement, TypeRename.class);
             };
         }
 
