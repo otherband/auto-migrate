@@ -12,18 +12,18 @@ import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinte
 public class MethodRenamer {
     public String renameMethod(String oldFile,
                                String scope,
-                               String oldMethodName,
-                               String newMethodName) {
+                               String oldName,
+                               String newName) {
         ParseResult<CompilationUnit> parseResult = new JavaParser().parse(oldFile);
         return parseResult.getResult()
                 .map(LexicalPreservingPrinter::setup)
-                .map(compilationUnit -> renameMethod(scope, oldMethodName, newMethodName, compilationUnit))
+                .map(compilationUnit -> renameMethod(scope, oldName, newName, compilationUnit))
                 .map(LexicalPreservingPrinter::print)
                 .orElseThrow(() -> new IllegalArgumentException("Could not parse java file [%s]".formatted(oldFile)));
     }
 
-    private static CompilationUnit renameMethod(String scope, String oldMethodName, String newMethodName, CompilationUnit compilationUnit) {
-        MethodUseRenamer methodUseRenamer = new MethodUseRenamer(scope, oldMethodName, newMethodName);
+    private static CompilationUnit renameMethod(String scope, String oldName, String newName, CompilationUnit compilationUnit) {
+        MethodUseRenamer methodUseRenamer = new MethodUseRenamer(scope, oldName, newName);
         compilationUnit.accept(methodUseRenamer, null);
         return compilationUnit;
     }
