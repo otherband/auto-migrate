@@ -1,1 +1,1 @@
-{"migrationVersion":"1.0","migrationSteps":[{"type":"METHOD_USE_RENAME","fromName":"of","toName":"ofElements"},{"type":"METHOD_USE_RENAME","fromName":"ofStuff","toName":"ofThings"}]}
+{"migrationVersion":"1.0","migrationSteps":[{"fromName":"of","toName":"ofElements","type":"RENAME_METHOD"},{"fromName":"ofStuff","toName":"ofThings","type":"RENAME_TYPE"}]}

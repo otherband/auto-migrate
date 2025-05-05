@@ -2,14 +2,14 @@
   "migrationVersion": "1.0",
   "migrationSteps": [
     {
-      "type": "METHOD_USE_RENAME",
+      "type": "RENAME_METHOD",
       "fromName": "of",
       "toName": "ofElements"
     },
     {
-      "type": "method_use_rename",
-      "fromName": "of",
-      "toName": "ofElements"
+      "type": "rename_type",
+      "fromName": "List",
+      "toName": "ListOfElements"
     }
   ]
 }

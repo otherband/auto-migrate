@@ -1,5 +1,5 @@
 package org.otherband;
 
 public enum MigrationType {
-    METHOD_USE_RENAME
+    RENAME_METHOD, RENAME_TYPE
 }

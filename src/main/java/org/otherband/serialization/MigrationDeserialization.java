@@ -3,6 +3,7 @@ package org.otherband.serialization;
 import com.google.gson.*;
 import org.otherband.MigrationType;
 import org.otherband.serialization.MigrationStep.MethodUseRename;
+import org.otherband.serialization.MigrationStep.TypeRename;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -31,7 +32,8 @@ public class MigrationDeserialization {
                                          Type type,
                                          JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
             return switch (getType(jsonElement)) {
-                case METHOD_USE_RENAME -> jsonDeserializationContext.deserialize(jsonElement, MethodUseRename.class);
+                case RENAME_METHOD -> jsonDeserializationContext.deserialize(jsonElement, MethodUseRename.class);
+                case RENAME_TYPE -> jsonDeserializationContext.deserialize(jsonElement, TypeRename.class);
             };
         }
 
