@@ -3,6 +3,7 @@ package org.otherband.automigrate;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseResult;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithSimpleName;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
@@ -72,14 +73,22 @@ public class ClassRenamer {
         @Override
         public void visit(VariableDeclarationExpr declarationExpr, Void arg) {
             super.visit(declarationExpr, arg);
-            declarationExpr.getVariables().forEach(variableDeclarator -> {
-                boolean shouldBeChanged = variableDeclarator.getType().isClassOrInterfaceType() && oldName.equals(variableDeclarator.getType().asClassOrInterfaceType().getNameAsString());
-                if (shouldBeChanged) {
-                    variableDeclarator.setType(newName);
-                }
-            });
+            declarationExpr.getVariables().forEach(this::renameLeftHandSide);
         }
 
+        private void renameLeftHandSide(VariableDeclarator variableDeclarator) {
+            if (shouldBeChanged(variableDeclarator)) {
+                variableDeclarator.setType(newName);
+            }
+        }
+
+        private boolean shouldBeChanged(VariableDeclarator variableDeclarator) {
+            if (variableDeclarator.getType().isClassOrInterfaceType()) {
+                ClassOrInterfaceType classOrInterfaceType = variableDeclarator.getType().asClassOrInterfaceType();
+                return oldName.equals(classOrInterfaceType.getNameAsString());
+            }
+            return false;
+        }
     }
 
 }

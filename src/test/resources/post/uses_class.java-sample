@@ -4,5 +4,6 @@ public class Main {
     public static void main(String[] args) {
         // this is a comment. Writer will write
         Author writer = new Author();
+        var otherWriter = new Author();
     }
 }
