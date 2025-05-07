@@ -9,7 +9,7 @@ import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class MigrationDeserialization {
+public class MigrationDeserializer {
     private static final Gson GSON = buildCustomGson();
     private static final Set<String> MIGRATION_TYPES = Arrays.stream(MigrationType.values())
             .map(migrationType -> migrationType.name().toLowerCase(Locale.ROOT))
