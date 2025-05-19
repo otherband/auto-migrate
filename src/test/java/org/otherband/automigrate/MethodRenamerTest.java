@@ -1,6 +1,7 @@
 package org.otherband.automigrate;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -33,6 +34,16 @@ class MethodRenamerTest {
         assertEquals(expected, rewriter.renameMethod(starting,
                 new SymbolInformation("java.util.List", "of"),
                 new SymbolInformation("java.util.List", "ofElements")
+        ));
+    }
+    @Test
+    @Disabled
+    void renamesBothScopeAndMethodForFullyQualifiedMethod() throws IOException {
+        String starting = readResource("pre/rename_everything_fully_qualified_method.java-sample");
+        String expected = readResource("post/rename_everything_fully_qualified_method.java-sample");
+        assertEquals(expected, rewriter.renameMethod(starting,
+                new SymbolInformation("java.util.List", "of"),
+                new SymbolInformation("java.util.ListOfElements", "ofElements")
         ));
     }
 

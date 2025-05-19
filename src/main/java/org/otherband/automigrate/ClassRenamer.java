@@ -11,11 +11,16 @@ import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
 
+import java.util.Objects;
+
 public class ClassRenamer {
     public String renameClass(String oldFile,
-                              String oldName,
-                              String newName) {
+                              SymbolInformation oldName,
+                              SymbolInformation newName) {
         ParseResult<CompilationUnit> parseResult = new JavaParser().parse(oldFile);
+        if (!oldName.qualifiedScopeName().equals(newName.qualifiedScopeName())) {
+            throw new UnsupportedOperationException("Scope renaming has not been implemented for classes!");
+        }
         return parseResult.getResult()
                 .map(LexicalPreservingPrinter::setup)
                 /*
@@ -28,23 +33,23 @@ public class ClassRenamer {
                 .orElseThrow(() -> new IllegalArgumentException("Could not parse java file [%s]".formatted(oldFile)));
     }
 
-    private static CompilationUnit renameClass(String oldName, String newName, CompilationUnit compilationUnit) {
+    private static CompilationUnit renameClass(SymbolInformation oldName, SymbolInformation newName, CompilationUnit compilationUnit) {
         TypeRenamer typeRenamer = new TypeRenamer(oldName, newName);
         compilationUnit.accept(typeRenamer, null);
         return compilationUnit;
     }
 
-    private static CompilationUnit renameVariableDeclarations(String oldName, String newName, CompilationUnit compilationUnit) {
+    private static CompilationUnit renameVariableDeclarations(SymbolInformation oldName, SymbolInformation newName, CompilationUnit compilationUnit) {
         VariableDeclarationRenamer variableDeclarationRenamer = new VariableDeclarationRenamer(oldName, newName);
         compilationUnit.accept(variableDeclarationRenamer, null);
         return compilationUnit;
     }
 
     private static class TypeRenamer extends VoidVisitorAdapter<Void> {
-        private final String oldName;
-        private final String newName;
+        private final SymbolInformation oldName;
+        private final SymbolInformation newName;
 
-        private TypeRenamer(String oldName, String newName) {
+        private TypeRenamer(SymbolInformation oldName, SymbolInformation newName) {
             this.oldName = oldName;
             this.newName = newName;
         }
@@ -53,33 +58,33 @@ public class ClassRenamer {
         public void visit(ClassOrInterfaceType classType, Void arg) {
             super.visit(classType, arg);
             if (doesNameMatch(classType)) {
-                classType.setName(newName);
+                classType.setName(newName.simpleName());
             }
         }
 
         @Override
         public void visit(ImportDeclaration importDeclaration, Void arg) {
             super.visit(importDeclaration, arg);
-            if (importDeclaration.getNameAsString().contains(oldName)) {
-                importDeclaration.setName(importDeclaration.getNameAsString().replace(oldName, newName));
+            if (importDeclaration.getNameAsString().contains(oldName.simpleName())) {
+                importDeclaration.setName(importDeclaration.getNameAsString().replace(oldName.simpleName(), newName.simpleName()));
             }
         }
 
         private boolean doesNameMatch(ClassOrInterfaceType type) {
-            return oldName.equals(type.getNameAsString()) ||
+            return oldName.simpleName().equals(type.getNameAsString()) ||
                     type.getScope()
                             .map(Node::toString)
-                            .map(scopeName -> scopeName.concat(".").concat(type.getNameAsString()))
-                            .map(oldName::equals)
+                            .map(scopeName -> VariableDeclarationRenamer.toQualifiedName(scopeName, type.getNameAsString()))
+                            .map(fqn -> fqn.equals(VariableDeclarationRenamer.toQualifiedName(oldName.qualifiedScopeName(), oldName.simpleName())))
                             .orElse(false);
         }
     }
 
     private static class VariableDeclarationRenamer extends VoidVisitorAdapter<Void> {
-        private final String oldName;
-        private final String newName;
+        private final SymbolInformation oldName;
+        private final SymbolInformation newName;
 
-        private VariableDeclarationRenamer(String oldName, String newName) {
+        private VariableDeclarationRenamer(SymbolInformation oldName, SymbolInformation newName) {
             this.oldName = oldName;
             this.newName = newName;
         }
@@ -91,17 +96,30 @@ public class ClassRenamer {
         }
 
         private void renameLeftHandSide(VariableDeclarator variableDeclarator) {
-            if (shouldBeChanged(variableDeclarator)) {
-                variableDeclarator.setType(newName);
+            if (variableDeclarator.getType().isClassOrInterfaceType()) {
+                ClassOrInterfaceType classOrInterfaceType = variableDeclarator.getType().asClassOrInterfaceType();
+                if (doesFullyQualifiedNameMatch(classOrInterfaceType)) {
+                    variableDeclarator.setType(toQualifiedName(newName.qualifiedScopeName(), newName.simpleName()));
+                } else if (doesSimpleNameMatch(classOrInterfaceType)) {
+                    variableDeclarator.setType(newName.simpleName());
+                }
             }
         }
 
-        private boolean shouldBeChanged(VariableDeclarator variableDeclarator) {
-            if (variableDeclarator.getType().isClassOrInterfaceType()) {
-                ClassOrInterfaceType classOrInterfaceType = variableDeclarator.getType().asClassOrInterfaceType();
-                return oldName.equals(classOrInterfaceType.getNameAsString());
-            }
-            return false;
+        private boolean doesSimpleNameMatch(ClassOrInterfaceType classOrInterfaceType) {
+            return oldName.simpleName().equals(classOrInterfaceType.getNameAsString());
+        }
+
+        private Boolean doesFullyQualifiedNameMatch(ClassOrInterfaceType classOrInterfaceType) {
+            return classOrInterfaceType.getScope()
+                    .map(Objects::toString)
+                    .map(scopeName -> toQualifiedName(scopeName, classOrInterfaceType.getNameAsString()))
+                    .map(fqn -> fqn.equals(toQualifiedName(oldName.qualifiedScopeName(), oldName.simpleName())))
+                    .orElse(false);
+        }
+
+        private static String toQualifiedName(String scopeName, String simpleName) {
+            return scopeName.concat(".").concat(simpleName);
         }
     }
 

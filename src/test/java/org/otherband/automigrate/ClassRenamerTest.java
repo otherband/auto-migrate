@@ -1,6 +1,5 @@
 package org.otherband.automigrate;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -16,19 +15,24 @@ public class ClassRenamerTest {
     void renameWriterToAuthor() throws IOException {
         String starting = readResource("pre/uses_class.java-sample");
         String expectedResult = readResource("post/uses_class.java-sample");
-        String result = classRenamer.renameClass(starting, "Writer", "Author");
+        String result = classRenamer.renameClass(starting, new SymbolInformation(
+                "com.github.writer",
+                "Writer"
+        ), new SymbolInformation(
+                "com.github.writer",
+                "Author"
+        ));
         assertEquals(expectedResult, result);
     }
 
     @Test
-    @Disabled
     void doNotRenameUserClasses() throws IOException {
         String starting = readResource("pre/user_class_uses_class.java-sample");
         String expectedResult = readResource("post/user_class_uses_class.java-sample");
 
         String result = classRenamer.renameClass(starting,
-                "com.github.javaparser.JavaParser",
-                "com.github.javaparser.EfficientJavaParser");
+                new SymbolInformation("com.github.javaparser", "JavaParser"),
+                new SymbolInformation("com.github.javaparser", "EfficientJavaParser"));
 
         assertEquals(expectedResult, result);
     }

@@ -1,0 +1,12 @@
+package org.otherband;
+
+import java.util.List;
+
+public class Main {
+    public static void main(String[] args) {
+        // uses List.of()
+        java.util.List.of();
+        // uses Set.of()
+        java.util.Set.of();
+    }
+}
