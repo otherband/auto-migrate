@@ -1,0 +1,11 @@
+package org.otherband.automigrate;
+
+import java.util.List.*;
+
+public class Main {
+    void doStuff() {
+        of();
+        of("", "", "");
+        java.util.Set.of();
+    }
+}

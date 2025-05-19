@@ -1,5 +1,7 @@
 package org.otherband;
 
+import com.github.writer.Writer;
+
 public class Main {
     public static void main(String[] args) {
         // this is a comment. Writer will write

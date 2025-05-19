@@ -21,7 +21,20 @@ class MethodRenamerTest {
     void renames() throws IOException {
         String starting = readResource("pre/uses_functions.java-sample");
         String expected = readResource("post/uses_functions.java-sample");
-        assertEquals(expected, rewriter.renameMethod(starting, "java.util.List", "of", "ofElements"));
+        assertEquals(expected, rewriter.renameMethod(starting,
+                new SymbolInformation("java.util.List", "of"),
+                new SymbolInformation("java.util.List", "ofElements")
+        ));
+    }
+
+    @Test
+    void renamesWithWildCardImports() throws IOException {
+        String starting = readResource("pre/uses_wildcard_import.java-sample");
+        String expected = readResource("post/uses_wildcard_import.java-sample");
+        assertEquals(expected, rewriter.renameMethod(starting,
+                new SymbolInformation("java.util.List", "of"),
+                new SymbolInformation("java.util.List", "ofElements")
+        ));
     }
 
     @Test
@@ -29,18 +42,18 @@ class MethodRenamerTest {
         String starting = readResource("pre/uses_functions_with_same_name.java-sample");
         String expected = readResource("post/uses_functions_with_same_name.java-sample");
         assertEquals(expected, rewriter.renameMethod(starting,
-                        "java.util.List",
-                        "of",
-                        "ofElements"));
+                new SymbolInformation("java.util.List", "of"),
+                new SymbolInformation("java.util.List", "ofElements")
+        ));
     }
 
     @Test
     void noChangeToFileWithNoMethodCalls() throws IOException {
         String starting = readResource("pre/no_functions.java-sample");
         assertEquals(starting, rewriter.renameMethod(starting,
-                        "java.util.List",
-                        "of",
-                        "ofElements"));
+                new SymbolInformation("java.util.List", "of"),
+                new SymbolInformation("java.util.List", "ofElements")
+        ));
     }
 
 }

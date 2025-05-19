@@ -3,12 +3,16 @@ package org.otherband.automigrate;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseResult;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.ImportDeclaration;
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithSimpleName;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
+
+import static java.util.Optional.ofNullable;
 
 public class ClassRenamer {
     public String renameClass(String oldFile,
@@ -19,6 +23,7 @@ public class ClassRenamer {
                 .map(LexicalPreservingPrinter::setup)
                 /*
                 Must be done in two steps. Does not work otherwise, does not work in the opposite order.
+                Works in one step without the `LexicalPreservingPrinter`.
                  */
                 .map(compilationUnit -> renameVariableDeclarations(oldName, newName, compilationUnit))
                 .map(compilationUnit -> renameClass(oldName, newName, compilationUnit))
@@ -38,7 +43,6 @@ public class ClassRenamer {
         return compilationUnit;
     }
 
-
     private static class TypeRenamer extends VoidVisitorAdapter<Void> {
         private final String oldName;
         private final String newName;
@@ -48,7 +52,7 @@ public class ClassRenamer {
             this.newName = newName;
         }
 
-
+        @Override
         public void visit(ClassOrInterfaceType classType, Void arg) {
             super.visit(classType, arg);
             if (doesNameMatch(classType)) {
@@ -56,8 +60,21 @@ public class ClassRenamer {
             }
         }
 
-        private boolean doesNameMatch(NodeWithSimpleName<?> type) {
-            return oldName.equals(type.getNameAsString());
+        @Override
+        public void visit(ImportDeclaration importDeclaration, Void arg) {
+            super.visit(importDeclaration, arg);
+            if (importDeclaration.getNameAsString().contains(oldName)) {
+                importDeclaration.setName(importDeclaration.getNameAsString().replace(oldName, newName));
+            }
+        }
+
+        private boolean doesNameMatch(ClassOrInterfaceType type) {
+            return oldName.equals(type.getNameAsString()) ||
+                    type.getScope()
+                            .map(Node::toString)
+                            .map(scopeName -> scopeName.concat(".").concat(type.getNameAsString()))
+                            .map(oldName::equals)
+                            .orElse(false);
         }
     }
 

@@ -3,68 +3,126 @@ package org.otherband.automigrate;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseResult;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+
 public class MethodRenamer {
     public String renameMethod(String oldFile,
-                               String scope,
-                               String oldName,
-                               String newName) {
+                               SymbolInformation oldName,
+                               SymbolInformation newName) {
         ParseResult<CompilationUnit> parseResult = new JavaParser().parse(oldFile);
+        final AtomicReference<Boolean> importExists = new AtomicReference<>(false);
         return parseResult.getResult()
                 .map(LexicalPreservingPrinter::setup)
-                .map(compilationUnit -> renameMethod(scope, oldName, newName, compilationUnit))
+                .map(compilationUnit -> checkImport(oldName, compilationUnit))
+                .map(importCheckResult -> renameMethod(importCheckResult, oldName, newName))
                 .map(LexicalPreservingPrinter::print)
                 .orElseThrow(() -> new IllegalArgumentException("Could not parse java file [%s]".formatted(oldFile)));
     }
 
-    private static CompilationUnit renameMethod(String scope, String oldName, String newName, CompilationUnit compilationUnit) {
-        MethodUseRenamer methodUseRenamer = new MethodUseRenamer(scope, oldName, newName);
-        compilationUnit.accept(methodUseRenamer, null);
-        return compilationUnit;
+    private ImportCheckResult checkImport(SymbolInformation oldName,
+                                          CompilationUnit compilationUnit) {
+        AtomicBoolean importExists = new AtomicBoolean(false);
+        AtomicBoolean wildCardImportExists = new AtomicBoolean(false);
+        ImportChecker importChecker = new ImportChecker(oldName, importExists, wildCardImportExists);
+        compilationUnit.accept(importChecker, null);
+        return new ImportCheckResult(
+                compilationUnit,
+                wildCardImportExists.get(),
+                importExists.get()
+        );
+    }
+
+    private static CompilationUnit renameMethod(ImportCheckResult importCheckResult,
+                                                SymbolInformation oldName,
+                                                SymbolInformation newName) {
+        MethodUseRenamer methodUseRenamer = new MethodUseRenamer(importCheckResult.importExists(),
+                importCheckResult.wildCardImportExists(),
+                oldName, newName);
+        importCheckResult.compilationUnit.accept(methodUseRenamer, null);
+        return importCheckResult.compilationUnit;
     }
 
 
     private static class MethodUseRenamer extends VoidVisitorAdapter<Void> {
-        private final String owningClass;
-        private final String oldName;
-        private final String newName;
+        private final boolean importExists;
+        private final boolean wildCardImportExists;
+        private final SymbolInformation oldName;
+        private final SymbolInformation newName;
 
-        private MethodUseRenamer(String owningClass, String oldName, String newName) {
-            this.owningClass = owningClass;
+        private MethodUseRenamer(boolean importExists, boolean wildCardImportExists, SymbolInformation oldName, SymbolInformation newName) {
+            this.importExists = importExists;
+            this.wildCardImportExists = wildCardImportExists;
             this.oldName = oldName;
             this.newName = newName;
         }
 
         @Override
-        public void visit(ClassOrInterfaceType n, Void arg) {
+        public void visit(ImportDeclaration n, Void arg) {
             super.visit(n, arg);
         }
 
         public void visit(MethodCallExpr methodCall, Void arg) {
             super.visit(methodCall, arg);
-            if (doesScopeMatch(methodCall) && doesNameMatch(methodCall)) {
-                methodCall.setName(newName);
+            if ((wildCardImportExists && methodCall.getScope().isEmpty()) || (importExists && doesScopeMatch(methodCall))) {
+                if (oldName.simpleName().equals(methodCall.getNameAsString())) {
+                    methodCall.setName(newName.simpleName());
+                }
+            } else {
+                String fullyQualifiedName = oldName.qualifiedScopeName().concat(".").concat(oldName.simpleName());
+                if (fullyQualifiedName.equals(methodCall.getNameAsString())) {
+                    methodCall.setName(newName.qualifiedScopeName().concat(".").concat(newName.simpleName()));
+                }
             }
         }
 
-        private boolean doesNameMatch(MethodCallExpr methodCall) {
-            return oldName.equals(methodCall.getNameAsString());
-        }
-
-        private boolean doesScopeMatch(MethodCallExpr methodCall) {
+        private Boolean doesScopeMatch(MethodCallExpr methodCall) {
             return methodCall.getScope()
-                    .map(this::doesScopeMatch)
+                    .map(scope -> {
+                        if (scope.isNameExpr()) {
+                            return scope.asNameExpr().getNameAsString();
+                        }
+                        return "---"; // cannot be contained
+                    })
+                    .map(scopeName -> oldName.qualifiedScopeName().contains(scopeName))
                     .orElse(false);
         }
 
-        private boolean doesScopeMatch(Expression expression) {
-            return owningClass.contains(expression.asNameExpr().getName().asString());
+    }
+
+    private static class ImportChecker extends VoidVisitorAdapter<Void> {
+        private final SymbolInformation oldName;
+        private final AtomicBoolean importExists;
+        private final AtomicBoolean wildCardImportExists;
+
+        private ImportChecker(SymbolInformation oldName, AtomicBoolean importExists, AtomicBoolean wildCardImportExists) {
+            this.oldName = oldName;
+            this.importExists = importExists;
+            this.wildCardImportExists = wildCardImportExists;
         }
+
+        @Override
+        public void visit(ImportDeclaration importDeclaration, Void arg) {
+            super.visit(importDeclaration, arg);
+
+            if (oldName.qualifiedScopeName().contains(importDeclaration.getNameAsString())) {
+                importExists.set(true);
+                if (importDeclaration.isAsterisk()) {
+                    wildCardImportExists.set(true);
+                }
+            }
+        }
+    }
+
+    private record ImportCheckResult(CompilationUnit compilationUnit,
+                                     boolean wildCardImportExists,
+                                     boolean importExists) {
+
     }
 
 }

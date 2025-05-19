@@ -6,5 +6,7 @@ public class Main {
     public static void main(String[] args) {
         // uses List.of()
         List.ofElements();
+        // uses Set.of()
+        java.util.Set.of();
     }
 }

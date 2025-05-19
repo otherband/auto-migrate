@@ -1,0 +1,7 @@
+package org.otherband.automigrate;
+
+public class JavaParser {
+    void doStuff() {
+        com.github.javaparser.JavaParser javaParser = new com.github.javaparser.JavaParser();
+    }
+}
