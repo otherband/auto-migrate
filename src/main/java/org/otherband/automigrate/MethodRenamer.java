@@ -8,6 +8,7 @@ import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -75,8 +76,9 @@ public class MethodRenamer {
                 }
             } else {
                 String fullyQualifiedName = oldName.qualifiedScopeName().concat(".").concat(oldName.simpleName());
-                if (fullyQualifiedName.equals(methodCall.getNameAsString())) {
-                    methodCall.setName(newName.qualifiedScopeName().concat(".").concat(newName.simpleName()));
+                String currentCallFullyQualifiedName = methodCall.getScope().map(Objects::toString).orElse("").concat(".").concat(methodCall.getNameAsString());
+                if (fullyQualifiedName.equals(currentCallFullyQualifiedName)) {
+                    methodCall.setName(newName.simpleName());
                 }
             }
         }

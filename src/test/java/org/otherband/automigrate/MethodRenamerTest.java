@@ -26,6 +26,15 @@ class MethodRenamerTest {
                 new SymbolInformation("java.util.List", "ofElements")
         ));
     }
+    @Test
+    void renamesFullyQualifiedMethods() throws IOException {
+        String starting = readResource("pre/uses_fully_qualified_method.java-sample");
+        String expected = readResource("post/uses_fully_qualified_method.java-sample");
+        assertEquals(expected, rewriter.renameMethod(starting,
+                new SymbolInformation("java.util.List", "of"),
+                new SymbolInformation("java.util.List", "ofElements")
+        ));
+    }
 
     @Test
     void renamesWithWildCardImports() throws IOException {
