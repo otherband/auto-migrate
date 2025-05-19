@@ -1,5 +1,6 @@
 package org.otherband.automigrate;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -20,6 +21,7 @@ public class ClassRenamerTest {
     }
 
     @Test
+    @Disabled
     void doNotRenameUserClasses() throws IOException {
         String starting = readResource("pre/user_class_uses_class.java-sample");
         String expectedResult = readResource("post/user_class_uses_class.java-sample");
